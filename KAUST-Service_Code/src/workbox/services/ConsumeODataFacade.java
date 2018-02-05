@@ -53,7 +53,7 @@ public class ConsumeODataFacade implements ConsumeODataFacadeLocal {
 		detailErrorDto.getMessage().setStatus("FAILURE");
 		detailErrorDto.getMessage().setStatusCode("1");
 
-	//	System.err.println("[PMC][ConsumeODataFacade][getTaskDetails] method invoked with [instanceId]" + instanceId+"[sapOrigin]"+sapOrigin);
+		//	System.err.println("[PMC][ConsumeODataFacade][getTaskDetails] method invoked with [instanceId]" + instanceId+"[sapOrigin]"+sapOrigin);
 		String serviceUrl = "http://sthcigwdq1.kaust.edu.sa:8005/sap/opu/odata/IWPGW/TASKPROCESSING;mo;v=2";
 		String usedFormatXml = PMCConstant.APPLICATION_ATOM_XML;
 		try {
@@ -71,6 +71,14 @@ public class ConsumeODataFacade implements ConsumeODataFacadeLocal {
 				if (!ServicesUtil.isEmpty(attrEntity)&&!ServicesUtil.isEmpty(attrEntity.getActionList())){
 					if(!ServicesUtil.isEmpty(attrEntity.getActions())){
 						detailDto.setActionList(attrEntity.getActions()+","+detailDto.getActionList());
+					}
+					else{
+						String actions = getDecisionOptions(sapOrigin,instanceId);
+						 if(!actions.equals("FAILURE") && !ServicesUtil.isEmpty(actions)){
+							 if (!new TaskCustomAttributeDao(em.getEntityManager()).updateAttributeInstance(instanceId,actions).equals("FAILURE")) {
+								 detailDto.setActionList(actions+","+detailDto.getActionList());
+							 }
+						 }
 					}
 				}
 
@@ -219,9 +227,11 @@ public class ConsumeODataFacade implements ConsumeODataFacadeLocal {
 				Map<String, Object> descProperties  = imp.getProperties();
 				Set<Entry<String, Object>> descEntries = descProperties.entrySet();
 				for (Entry<String, Object> descEntry : descEntries) {
-					if(descEntry.getKey().equals("Description")){
+					if(descEntry.getKey().equals("DescriptionAsHtml")){
+						detailDto.setDescriptionAsHtml((String) descEntry.getValue());
+					}
+					else if(descEntry.getKey().equals("Description")){
 						detailDto.setDescription((String) descEntry.getValue());
-						break;
 					}
 				}
 			}else if (key.equals("TaskSupports")){
@@ -265,12 +275,25 @@ public class ConsumeODataFacade implements ConsumeODataFacadeLocal {
 				detailDto.setAttachmentCollection(attachmentCollection);
 			}
 		}
-	//	System.err.println("[PMC][ConsumeODataFacade][convertToDetailDto][end] with " +detailDto);
+		//	System.err.println("[PMC][ConsumeODataFacade][convertToDetailDto][end] with " +detailDto);
 		return detailDto;
 	}
 
+	private String getDecisionOptions(String sapOrigin,String instanceId){
+		String serviceUrl = "http://sthcigwdq1.kaust.edu.sa:8005/sap/opu/odata/IWPGW/TASKPROCESSING;mo;v=2/DecisionOptions?SAP__Origin='"+sapOrigin+"'&InstanceID='"+instanceId+"'";
+		System.err.println("[PMC][ConsumeODataFacade][getDecisionOptions] method invoked with [instanceId]" + instanceId+"[sapOrigin]"+sapOrigin+" [url]"+serviceUrl);
+		
+		try {
+			String  actions = ODataServicesUtil.readActions(serviceUrl, PMCConstant.APPLICATION_XML);
+			return actions;
 
-	
+		} catch (Exception e) {
+			System.err.println("[PMC][ConsumeODataFacade][getDecisionOptions][error]" + e.getMessage());
+		}
+		return "FAILURE";
+	}
+
+
 
 	@Override
 	public String allProcessInstance() {
@@ -299,7 +322,7 @@ public class ConsumeODataFacade implements ConsumeODataFacadeLocal {
 
 
 
-	
+
 	/*
 	 * UNCOMMENT TO GET DATA FROM ECC AND STORE IN DB USING OLINGO 
 	 * 
@@ -582,7 +605,7 @@ public class ConsumeODataFacade implements ConsumeODataFacadeLocal {
 		}
 		return "SUCCESS";
 	}
-	
+
 	@TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
 	private String saveAndUpdateTaskOwners(TaskOwnersDto dto ,String status){
 		TaskOwnersDao dao = new TaskOwnersDao(em.getEntityManager());
@@ -609,7 +632,7 @@ public class ConsumeODataFacade implements ConsumeODataFacadeLocal {
 		return "SUCCESS";
 	}*/
 
-	
-	
-	
+
+
+
 }

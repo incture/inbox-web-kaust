@@ -1,44 +1,37 @@
 package com.incture.pmc.workbox.dto;
 
 import java.util.List;
-import java.util.Map;
 
 public class ExistingDataDto{
 
+
+	private int count ;
+	private List<String> stringList ;
 	
-	private Map<String,Integer> totalCountMap ;
-	private Map<String,List<String>> existingInstanceMap;
 	
-	
-	
-	public Map<String, Integer> getTotalCountMap() {
-		return totalCountMap;
-	}
-
-
-
-	public void setTotalCountMap(Map<String, Integer> totalCountMap) {
-		this.totalCountMap = totalCountMap;
-	}
-
-
-
-	public Map<String, List<String>> getExistingInstanceMap() {
-		return existingInstanceMap;
-	}
-
-
-
-	public void setExistingInstanceMap(Map<String, List<String>> existingInstanceMap) {
-		this.existingInstanceMap = existingInstanceMap;
-	}
-
-
-
 	@Override
 	public String toString() {
-		return "DeviceListDto [totalCountMap=" + totalCountMap + ", existingInstanceMap=" + existingInstanceMap + "]";
+		return "ExistingDataDto [count=" + count + ", stringList=" + stringList + "]";
+	}
+	
+	public int getCount() {
+		return count;
+	}
+	public void setCount(int count) {
+		this.count = count;
+	}
+	public List<String> getStringList() {
+		return stringList;
+	}
+	public void setStringList(List<String> stringList) {
+		this.stringList = stringList;
 	}
 
-	
+
+
+
+
+
+
+
 }

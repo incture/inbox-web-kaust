@@ -82,29 +82,42 @@ public class NotificationFacade implements NotificationFacadeLocal {
 	public void sendNotification() {
 
 		DeviceManagementDao dao = new DeviceManagementDao(em.getEntityManager());
-		Map<String,List<String>> deviceData = dao.getAllDeviceData();
+		Map<String,ExistingDataDto> deviceData = dao.getAllDeviceData();
+		ExistingDataDto deviceDataOfUser = null;
 		if(!ServicesUtil.isEmpty(deviceData)){
 			DescriptionResponseDto rfcData = getDataFromRFC(deviceData.keySet().toArray());
+			List<String> usersList = new ArrayList<String>();
 			if(!ServicesUtil.isEmpty(rfcData.getInstanceList())){
-				ExistingDataDto existingDataDto = new TaskOwnersDao(em.getEntityManager()).getExistingData(rfcData.getUserCountMap().keySet().toArray()); 
+				Map<String,ExistingDataDto> existingDataDto = new TaskOwnersDao(em.getEntityManager()).getExistingData(rfcData.getUserCountMap().keySet().toArray()); 
 				for(DescriptionDto descDto : rfcData.getInstanceList()){
-					List<String> instanceList =  existingDataDto.getExistingInstanceMap().get(descDto.getUserId());
+					String user = descDto.getUserId().toUpperCase();
+					List<String> instanceList =  existingDataDto.get(user).getStringList();
 					if( !ServicesUtil.isEmpty(instanceList) ){
+						deviceDataOfUser = deviceData.get(user);
 						if( !instanceList.contains(descDto.getInstanceId()))
 						{
-							existingDataDto.getTotalCountMap().replace(descDto.getUserId(), existingDataDto.getTotalCountMap().get(descDto.getUserId())+1);
-							pushNotificationToIOS(existingDataDto.getTotalCountMap().get(descDto.getUserId()) , descDto.getDescription() ,deviceData.get(descDto.getUserId()));
-							
+							deviceData.get(user).setCount(deviceDataOfUser.getCount()+1);
+							//	existingDataDto.getTotalCountMap().replace(user, existingDataDto.getTotalCountMap().get(user)+1);
+							pushNotificationToIOS(existingDataDto.get(user).getCount() + deviceDataOfUser.getCount() , descDto.getDescription() ,deviceDataOfUser.getStringList());
 						}
 					}
 					else{
+						deviceDataOfUser = new ExistingDataDto();
 						List<String> stList = new ArrayList<String>();
 						stList.add(descDto.getInstanceId());
-						existingDataDto.getExistingInstanceMap().put(descDto.getUserId(), stList);
-						existingDataDto.getTotalCountMap().put(descDto.getUserId(), 1);
-						pushNotificationToIOS(1 , descDto.getDescription() ,deviceData.get(descDto.getUserId()));
-						
+						deviceDataOfUser.setCount(1);
+						deviceDataOfUser.setStringList(stList);
+						existingDataDto.put(user, deviceDataOfUser);
+						pushNotificationToIOS(1 , descDto.getDescription() ,deviceDataOfUser.getStringList());
+
 					}
+					if(!usersList.contains(user))
+						usersList.add(user);
+				}
+				
+				for(String user :usersList){
+					if(deviceData.get(user).getCount()>0)
+					dao.updateCountOfUser(user, deviceData.get(user).getCount());
 				}
 			}
 

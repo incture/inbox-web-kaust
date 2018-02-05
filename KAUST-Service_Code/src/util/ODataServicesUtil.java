@@ -12,9 +12,11 @@ import java.nio.charset.StandardCharsets;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import org.apache.http.Header;
@@ -36,7 +38,9 @@ import org.apache.olingo.odata2.api.ep.feed.ODataFeed;
 import org.apache.olingo.odata2.api.exception.ODataException;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
+import com.incture.pmc.workbox.dto.ActionsRequestDto;
 import com.incture.pmc.workbox.dto.ResponseMessage;
 import com.incture.pmc.workbox.dto.WorkboxRequestDto;
 
@@ -92,6 +96,8 @@ public class ODataServicesUtil {
 			connection = initializeConnection(relativeUri, contentType, httpMethod);
 			connection.connect();
 			checkStatus(connection);
+			//	String csfr = connection.getHeaderField("x-csrf-token");
+			//	System.err.println("[PMC][ODataServicesUtil][execute][csfr]  "+csfr);
 			content = connection.getInputStream();
 			content = logRawContent(httpMethod + " request on uri '" + relativeUri + "' with content:\n  ", content, "\n");
 
@@ -190,6 +196,7 @@ public class ODataServicesUtil {
 			InputStream content = connection.getInputStream();
 			byte[] buffer = streamToArray(content);
 			String st = new String(buffer);
+			//System.err.println("[PMC][ODataServicesUtil][readActions][st]  "+ st);
 			if(st.contains("Submit")){
 				actions = actions +"Submit";
 			}
@@ -213,14 +220,78 @@ public class ODataServicesUtil {
 				connection.disconnect();
 			}
 		}
+	//	System.err.println("[PMC][ODataServicesUtil][readActions][result]  "+ actions);
 		return actions;
 	}
 
 
+	/*	public static String getCountInString(String sapOrigin, String instanceId,String type){
+		String serviceUri = "http://sthcigwdq1.kaust.edu.sa:8005/sap/opu/odata/IWPGW/TASKPROCESSING;mo;v=2/TaskCollection(SAP__Origin='"+sapOrigin+"',InstanceID='"+instanceId+"')/"+type+"/$count";
+		HttpURLConnection connection = null;
+		String st= "";
+		try{
+			connection = initializeConnection(serviceUri,  PMCConstant.APPLICATION_XML, PMCConstant.HTTP_METHOD_GET);
+			connection.connect();
+			checkStatus(connection);
+			InputStream content = connection.getInputStream();
+			byte[] buffer = streamToArray(content);
+			st = new String(buffer);
 
+		}catch(Exception e){
+			System.err.println("[PMC][ODataServicesUtil][getCountInString][error]  "+ e.getMessage());
+		}
+		finally{
+			if(!ServicesUtil.isEmpty(connection)){
+				connection.disconnect();
+			}
+		}
+		return st;
+	}*/
+
+	//	public static String getAttachment(String instanceId,String sapOrigin,String username ,String scode, String id){
+	//		//	String serviceUri = "http://sthcigwdq1.kaust.edu.sa:8005/sap/opu/odata/IWPGW/TASKPROCESSING;mo;v=2/TaskCollection(SAP__Origin='"+sapOrigin+"',InstanceID='"+instanceId+"')/"+type+"/$count";
+	//		System.err.println("[PMC][ODataServicesUtil][Xpath][getAttachment]initiated ");
+	//		if(!ServicesUtil.isEmpty(username) && !ServicesUtil.isEmpty(scode))
+	//		{
+	//			if(!ServicesUtil.isEmpty(sapOrigin) && !ServicesUtil.isEmpty(instanceId)&& !ServicesUtil.isEmpty(id)){
+	//				USERNAME = username;
+	//				PASSWORD = ServicesUtil.getDecryptedText(scode);
+	//				String serviceUri = "http://sthcigwdq1.kaust.edu.sa:8005/sap/opu/odata/IWPGW/TASKPROCESSING;mo;v=2/AttachmentCollection(SAP__Origin='"+sapOrigin+"',InstanceID='"+instanceId+"',ID='"+id+"')/$value";
+	//
+	//				HttpURLConnection connection = null;
+	//				String st= "";
+	//				try{
+	//					connection = initializeConnection(serviceUri,  PMCConstant.APPLICATION_XML, PMCConstant.HTTP_METHOD_GET);
+	//					connection.connect();
+	//					checkStatus(connection);
+	//					InputStream content = connection.getInputStream();
+	//					byte[] buffer = streamToArray(content);
+	//					st = new String(buffer);
+	//
+	//				}catch(Exception e){
+	//					System.err.println("[PMC][ODataServicesUtil][getAttachment][error]  "+ e.getMessage());
+	//				}
+	//				finally{
+	//					if(!ServicesUtil.isEmpty(connection)){
+	//						connection.disconnect();
+	//					}
+	//				}
+	//
+	//				System.err.println("[PMC][ODataServicesUtil][Xpath][getAttachment]exited with  " +st);
+	//				return st;
+	//			}
+	//			else{
+	//				return "";
+	//			}
+	//		}
+	//		else {
+	//			return "";
+	//		}
+	//	}
 
 	public static InputStream getAttachment(String instanceId,String sapOrigin,String username ,String scode, String id){
-		//	System.err.println("[PMC][ODataServicesUtil][Xpath][getAttachment]initiated ");
+		//            String serviceUri = "http://sthcigwdq1.kaust.edu.sa:8005/sap/opu/odata/IWPGW/TASKPROCESSING;mo;v=2/TaskCollection(SAP__Origin='"+sapOrigin+"',InstanceID='"+instanceId+"')/"+type+"/$count";
+		System.err.println("[PMC][ODataServicesUtil][Xpath][getAttachment]initiated ");
 		if(!ServicesUtil.isEmpty(username) && !ServicesUtil.isEmpty(scode))
 		{
 			if(!ServicesUtil.isEmpty(sapOrigin) && !ServicesUtil.isEmpty(instanceId)&& !ServicesUtil.isEmpty(id)){
@@ -246,7 +317,8 @@ public class ODataServicesUtil {
 						connection.disconnect();
 					}*/
 				}
-				//	System.err.println("[PMC][ODataServicesUtil][Xpath][getAttachment]exited with  " +inputStream);
+
+				System.err.println("[PMC][ODataServicesUtil][Xpath][getAttachment]exited with  " +inputStream);
 				return inputStream;
 			}
 			else{
@@ -260,16 +332,16 @@ public class ODataServicesUtil {
 
 
 	public static ResponseMessage executeAction(WorkboxRequestDto requestDto){
-
+		System.err.println("[PMC][ODataServicesUtil][actions][executeAction][init] " +requestDto);
 		ResponseMessage returnMessage = new ResponseMessage();
-		if(requestDto.getTaskType().equals("AddComment")){
-			returnMessage.setMessage(" Failed to add Comment");	
+		if( requestDto.getTaskType().equals("AddComment")){
+			returnMessage.setMessage("Failed to Add Comment");	
 		}else{
-			returnMessage.setMessage(" Failed to "+ requestDto.getTaskType());
+			returnMessage.setMessage("Failed to "+ requestDto.getTaskType());
 		}
 		returnMessage.setStatus("FAILURE");
 		returnMessage.setStatusCode("1");
-		//	System.err.println("[PMC][ODataServicesUtil][Xpath][actions]initiated ");
+		System.err.println("[PMC][ODataServicesUtil][Xpath][actions]initiated ");
 		if(!ServicesUtil.isEmpty(requestDto.getUserId()) && !ServicesUtil.isEmpty(requestDto.getScode()))
 		{
 			if(!ServicesUtil.isEmpty(requestDto.getSapOrigin()) && !ServicesUtil.isEmpty(requestDto.getInstanceId())&& !ServicesUtil.isEmpty(requestDto.getTaskType())){
@@ -288,22 +360,26 @@ public class ODataServicesUtil {
 						serviceUri=serviceUri+	"&Text='"+ URLEncoder.encode(requestDto.getText() , "UTF-8")+"'";
 					}
 
-					if(!ServicesUtil.isEmpty(requestDto.getItemNo())){
-						if(ServicesUtil.isEmpty(requestDto.getComments())){
-							serviceUri=serviceUri+"&Comments='*AllItems*";
+					if(!ServicesUtil.isEmpty(requestDto.getActions())){
+						serviceUri = serviceUri+"&sap-client=260&Comments='";
+						if(!ServicesUtil.isEmpty(requestDto.getComments())){
+							serviceUri = serviceUri+ URLEncoder.encode(requestDto.getComments() , "UTF-8"); 
 						}
-						else{
-							serviceUri=serviceUri+"&Comments='*"+ URLEncoder.encode(requestDto.getComments() , "UTF-8")+"*"; 
+						serviceUri = serviceUri+"%20*AllItems*%20";
+						for(ActionsRequestDto dto : requestDto.getActions()){
+							serviceUri = serviceUri+"ItemNo%20eq%20"+dto.getItemNo()+"%20and%20Accept/Reject%20eq%20"; 
+							if(dto.getAction().equals("APPROVE")){
+								serviceUri = serviceUri+"TRUE";	
+							}
+							else{
+								serviceUri = serviceUri+"FALSE";
+							}
+							serviceUri = serviceUri+",";
 						}
-						serviceUri=serviceUri+"%20ItemNo%20eq%20"+requestDto.getItemNo()+"and%20Accept/Reject%20eq%20"; 
-						if(requestDto.getDecisionText().equals("Accept")){
-							serviceUri=serviceUri+"TRUE'";	
-						}
-						else{
-							serviceUri=serviceUri+"FALSE'";
-						}
+						serviceUri = serviceUri.substring(0,serviceUri.length()-1);
+						serviceUri = serviceUri+"'";
 					}
-					if(!ServicesUtil.isEmpty(requestDto.getComments())&&ServicesUtil.isEmpty(requestDto.getItemNo())){
+					if(!ServicesUtil.isEmpty(requestDto.getComments()) && ServicesUtil.isEmpty(requestDto.getActions())){
 						serviceUri=serviceUri+	"&Comments='"+URLEncoder.encode(requestDto.getComments() , "UTF-8")+"'";
 					}
 
@@ -313,16 +389,18 @@ public class ODataServicesUtil {
 					return returnMessage;
 				}
 				serviceUri = serviceBase +serviceUri;
-				//	System.err.println("[PMC][ODataServicesUtil][Xpath][actions][username]"+USERNAME+"[serviceUri] "+serviceUri);
+				System.err.println("[PMC][ODataServicesUtil][Xpath][actions][username]"+USERNAME+"[serviceUri] "+serviceUri);
 
 				try {
 					returnMessage = executeActionHttp(serviceUri);
+					if( requestDto.getTaskType().equals("AddComment")){
+						requestDto.setTaskType("Add Comment");
+					}
 					if(returnMessage.getStatus().equals("SUCCESS")){
-						if(requestDto.getTaskType().equals("AddComment")){
-							returnMessage.setMessage("Adding Comment Successful");	
-						}else{
-							returnMessage.setMessage( requestDto.getTaskType() + " Successful");
-						}
+						returnMessage.setMessage( requestDto.getTaskType() + " Successful");
+					}
+					else if(returnMessage.getStatus().equals("FAILURE") && ServicesUtil.isEmpty(returnMessage.getMessage()) ){
+						returnMessage.setMessage( requestDto.getTaskType() + " Failed");
 					}
 				} catch (IOException e) {
 					returnMessage.setMessage(e.getMessage());
@@ -331,14 +409,17 @@ public class ODataServicesUtil {
 			else{
 
 				returnMessage.setMessage("BAD REQUEST");
+				System.err.println("[PMC][ODataServicesUtil][actions][executeAction][exit] " +returnMessage);
 				return returnMessage;
 			}
 		}
 		else {
 			returnMessage.setMessage("AUTHORISATION FAILED");
+			System.err.println("[PMC][ODataServicesUtil][actions][executeAction][exit] " +returnMessage);
 			return returnMessage;
 		}
 
+		System.err.println("[PMC][ODataServicesUtil][actions][executeAction][exit] " +returnMessage);
 		return returnMessage;
 	}
 
@@ -363,17 +444,26 @@ public class ODataServicesUtil {
 			XPath xPath =  XPathFactory.newInstance().newXPath();
 
 			nodeList = (NodeList) xPath.compile(expression).evaluate(doc, XPathConstants.NODESET);
-		} catch (Exception e) {
-			System.err.println("[PMC][ODataServicesUtil][xPathOdata][error] " +e.getMessage());
+		} catch (ParserConfigurationException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} 
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SAXException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (XPathExpressionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return nodeList;
 	}
 
 
 	public static ResponseMessage executeActionHttp(String url) throws IOException
 	{       
-		//	System.err.println("[PMC][ODataServicesUtil][actions][executeActionHttp][entry] " +url);
+		System.err.println("[PMC][ODataServicesUtil][actions][executeActionHttp][entry] " +url);
 		ResponseMessage returnMessage = new ResponseMessage();
 		String X_CSRF_TOKEN= "";
 		CloseableHttpClient httpclient = HttpClients.createDefault();
@@ -387,26 +477,33 @@ public class ODataServicesUtil {
 				HttpResponse res = httpclient.execute(httpget);                           
 				headers = res.getAllHeaders();
 				for (Header h : headers) {
+					//	System.out.println(h.getName() + "---:---- " + h.getValue());
 					if (h.getName().equals("x-csrf-token")) {
 						X_CSRF_TOKEN = h.getValue();
-						//	System.err.println("[PMC][ODataServicesUtil][actions][executeActionHttp][csrf] " +X_CSRF_TOKEN);
+						System.err.println("[PMC][ODataServicesUtil][actions][executeActionHttp][csrf] " +X_CSRF_TOKEN);
 					}
 				}
 			}
-
 			// The main POST REQUEST
 
+			System.err.println("[PMC][ODataServicesUtil][actions][executeAction][beforePost] " +X_CSRF_TOKEN);
 			postRequest.addHeader("Authorization", getBasicAuth());
-			
-			//   PASSING THE TOKEN GOTTEN FROM THE CODE ABOVE
-			postRequest.setHeader("x-csrf-token", X_CSRF_TOKEN); 
+			postRequest.setHeader("x-csrf-token", X_CSRF_TOKEN); //   PASSING THE TOKEN GOTTEN FROM THE CODE ABOVE
+
 
 			HttpResponse response = httpclient.execute(postRequest);
 			String result = EntityUtils.toString(response.getEntity());
 			int responseCode = response.getStatusLine().getStatusCode();
 
-			//	System.err.println("Http Response: Response code " + responseCode);
+			System.err.println("Http Response: Response code " + responseCode +"result.toString()"+result.toString());
 			returnMessage.setStatusCode(Integer.toString(responseCode));
+			if(responseCode!=200){
+				returnMessage.setStatus("FAILURE");
+			}
+			else{
+				returnMessage.setStatus("SUCCESS");
+			}
+
 			if(responseCode!=200 && result.toString().contains("error")){
 				try {
 					DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -419,61 +516,30 @@ public class ODataServicesUtil {
 					XPathExpression expr1=xPath.compile("error/message/text()"); 
 					NodeList node1 = (NodeList) expr1.evaluate(doc, XPathConstants.NODESET);
 					returnMessage.setMessage(node1.item(0).getNodeValue());
-					returnMessage.setStatus("FAILURE");
 
 				} catch (Exception e1) {
 					System.err.println("[PMC][ODataServicesUtil][actions][executeActionHttp][togetError]"+e1.getMessage());
 				}
 			}
-			else{
-				returnMessage.setStatus("SUCCESS");
-			}
+
 		}catch(Exception e ){
 			System.err.println("[PMC][ODataServicesUtil][actions][executeActionHttp][error]"+e.getMessage());
 			returnMessage.setMessage(e.getMessage());
 			returnMessage.setStatus("FAILURE");
 			returnMessage.setStatusCode("1");
 		}
-	//	System.err.println("[PMC][ODataServicesUtil][actions][executeActionHttp][exit]"+returnMessage);
+		System.err.println("[PMC][ODataServicesUtil][actions][executeActionHttp][exit]"+returnMessage);
 		return returnMessage;
 	}
 
 	private static String getBasicAuth() {
+		//   String userpass = userName + ":" + password;
 		String userpass = USERNAME + ":" + PASSWORD;
 		return "Basic "
 		+ javax.xml.bind.DatatypeConverter.printBase64Binary(userpass
 				.getBytes());
 	}
 
-
-
-
-
-	/*	
-	 * UNCOMMENT TO GET ONLY THE COUNT OF THE ATTACHMENTS OR COMMENTS 
-	 * 
-	 * public static String getCountInString(String sapOrigin, String instanceId,String type){
-	String serviceUri = "http://sthcigwdq1.kaust.edu.sa:8005/sap/opu/odata/IWPGW/TASKPROCESSING;mo;v=2/TaskCollection(SAP__Origin='"+sapOrigin+"',InstanceID='"+instanceId+"')/"+type+"/$count";
-	HttpURLConnection connection = null;
-	String st= "";
-	try{
-		connection = initializeConnection(serviceUri,  PMCConstant.APPLICATION_XML, PMCConstant.HTTP_METHOD_GET);
-		connection.connect();
-		checkStatus(connection);
-		InputStream content = connection.getInputStream();
-		byte[] buffer = streamToArray(content);
-		st = new String(buffer);
-
-	}catch(Exception e){
-		System.err.println("[PMC][ODataServicesUtil][getCountInString][error]  "+ e.getMessage());
-	}	
-	finally{
-		if(!ServicesUtil.isEmpty(connection)){
-			connection.disconnect();
-		}
-	}
-	return st;
-} */
 
 
 }

@@ -1,5 +1,7 @@
 package com.incture.pmc.workbox.dto;
 
+import java.util.List;
+
 public class WorkboxRequestDto {
 	private String userId;
 	private String scode;
@@ -13,7 +15,7 @@ public class WorkboxRequestDto {
 	private String decisionKey;
 	private String forwardTo;
 	private String text;
-	private String itemNo;
+	private List<ActionsRequestDto> actions;
 	private String decisionText;
 	
 	
@@ -21,17 +23,13 @@ public class WorkboxRequestDto {
 		super();
 	}
 
-	public WorkboxRequestDto(String userId, String taskType,int maxCount,int skipCount,String scode,String instanceId,String sapOrigin) {
-		super();
-		this.userId = userId;
-		this.taskType = taskType;
-		this.maxCount = maxCount;
-		this.skipCount = skipCount;
-		this.scode = scode;
-		this.instanceId = instanceId;
-		this.sapOrigin = sapOrigin;
+	public List<ActionsRequestDto> getActions() {
+		return actions;
 	}
 
+	public void setActions(List<ActionsRequestDto> actions) {
+		this.actions = actions;
+	}
 
 	public String getInstanceId() {
 		return instanceId;
@@ -135,21 +133,12 @@ public class WorkboxRequestDto {
 		this.text = text;
 	}
 	
-	public String getItemNo() {
-		return itemNo;
-	}
-
-	public void setItemNo(String itemNo) {
-		this.itemNo = itemNo;
-	}
-
-
 	@Override
 	public String toString() {
 		return "WorkboxRequestDto [userId=" + userId + ", scode=" + scode + ", taskType=" + taskType + ", maxCount="
 				+ maxCount + ", skipCount=" + skipCount + ", instanceId=" + instanceId + ", sapOrigin=" + sapOrigin
 				+ ", attachmentId=" + attachmentId + ", comments=" + comments + ", decisionKey=" + decisionKey
-				+ ", forwardTo=" + forwardTo + ", text=" + text + ", itemNo=" + itemNo + ", decisionText="
+				+ ", forwardTo=" + forwardTo + ", text=" + text + ", actions=" + actions + ", decisionText="
 				+ decisionText + "]";
 	}
 

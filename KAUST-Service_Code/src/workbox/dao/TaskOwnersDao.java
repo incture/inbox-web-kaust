@@ -66,7 +66,7 @@ public class TaskOwnersDao extends BaseDao<TaskOwnersDo, TaskOwnersDto> {
 
 	public String createTaskOwnerInstance(TaskOwnersDto dto) {
 
-		//	System.err.println("[PMC][ConsumeODataFacade][createTaskOwnerInstance]initiated with " + dto);
+		//            System.err.println("[PMC][ConsumeODataFacade][createTaskOwnerInstance]initiated with " + dto);
 		try {
 			create(dto);
 			return "SUCCESS";
@@ -77,7 +77,7 @@ public class TaskOwnersDao extends BaseDao<TaskOwnersDo, TaskOwnersDto> {
 	}
 
 	public String updateTaskOwnerInstance(TaskOwnersDto dto) {
-		//	System.err.println("[PMC][ConsumeODataFacade][updateTaskOwnerInstance]initiated with " + dto);
+		//            System.err.println("[PMC][ConsumeODataFacade][updateTaskOwnerInstance]initiated with " + dto);
 		try {
 			update(dto);
 			return "SUCCESS";
@@ -89,7 +89,7 @@ public class TaskOwnersDao extends BaseDao<TaskOwnersDo, TaskOwnersDto> {
 
 	@SuppressWarnings({ "unchecked", "unused" })
 	public String allOwnersInstance() {
-		//	System.err.println("[PMC][TaskOwnersDao][allOwnersInstance]initiated ");
+		//            System.err.println("[PMC][TaskOwnersDao][allOwnersInstance]initiated ");
 		Query query = this.getEntityManager().createQuery("select te from TaskOwnersDo te");
 		List<TaskOwnersDo> processDos = (List<TaskOwnersDo>) query.getResultList();
 		int i = 0;
@@ -107,7 +107,7 @@ public class TaskOwnersDao extends BaseDao<TaskOwnersDo, TaskOwnersDto> {
 	}
 
 	public String deleteInstance(TaskOwnersDo entity) {
-		//	System.err.println("[PMC][TaskOwnersDao][deleteInstance]initiated "+entity);
+		//            System.err.println("[PMC][TaskOwnersDao][deleteInstance]initiated "+entity);
 		try {
 			delete(exportDto(entity));
 			return "SUCCESS";
@@ -123,9 +123,9 @@ public class TaskOwnersDao extends BaseDao<TaskOwnersDo, TaskOwnersDto> {
 				.createQuery("select to from TaskOwnersDo to where to.taskOwnersDoPK.eventId =:instanceId");
 		query.setParameter("instanceId", instanceId);
 
-		List<TaskOwnersDo>  dos =	(List<TaskOwnersDo>) query.getResultList();
+		List<TaskOwnersDo>  dos =         (List<TaskOwnersDo>) query.getResultList();
 
-		//		System.err.println("[PMC][TaskOwnersDao][getOwnerInstanceCount][dos] " +dos+"[instanceId]"+instanceId);
+		//                            System.err.println("[PMC][TaskOwnersDao][getOwnerInstanceCount][dos] " +dos+"[instanceId]"+instanceId);
 		if(dos.size()>0){
 			return  dos;
 		}
@@ -138,11 +138,11 @@ public class TaskOwnersDao extends BaseDao<TaskOwnersDo, TaskOwnersDto> {
 	@SuppressWarnings("unchecked")
 	@TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
 	public String deleteInstanceByOwner(String owner) {
-		//	System.err.println("[PMC][TaskOwnersDao][deleteInstanceByOwner]initiated with "+owner);
+		//            System.err.println("[PMC][TaskOwnersDao][deleteInstanceByOwner]initiated with "+owner);
 		Query query = this.getEntityManager().createQuery("select te from TaskOwnersDo te where te.taskOwnersDoPK.taskOwner = :owner ");
 		query.setParameter("owner", owner);
 		List<TaskOwnersDo> processDos = (List<TaskOwnersDo>) query.getResultList();
-		//	System.err.println("[PMC][TaskOwnersDao][deleteInstanceByOwner][processDos] "+processDos);
+		//            System.err.println("[PMC][TaskOwnersDao][deleteInstanceByOwner][processDos] "+processDos);
 		try {
 			if(!ServicesUtil.isEmpty(processDos)){
 				for (TaskOwnersDo entity : processDos) {
@@ -162,12 +162,12 @@ public class TaskOwnersDao extends BaseDao<TaskOwnersDo, TaskOwnersDto> {
 	@SuppressWarnings("unchecked")
 	@TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
 	public List<TaskOwnersDo> getInstanceByOwner(String owner) {
-		//	System.err.println("[PMC][TaskOwnersDao][getInstanceByOwner]initiated with "+owner);
+		//            System.err.println("[PMC][TaskOwnersDao][getInstanceByOwner]initiated with "+owner);
 		try {
 			Query query = this.getEntityManager().createQuery("select te from TaskOwnersDo te where te.taskOwnersDoPK.taskOwner = :owner ");
 			query.setParameter("owner", owner);
 			List<TaskOwnersDo> processDos = (List<TaskOwnersDo>) query.getResultList();
-			//	System.err.println("[PMC][TaskOwnersDao][getInstanceByOwner][processDos] "+processDos);
+			//            System.err.println("[PMC][TaskOwnersDao][getInstanceByOwner][processDos] "+processDos);
 			if(!ServicesUtil.isEmpty(processDos)){
 				return processDos;
 			}
@@ -178,9 +178,9 @@ public class TaskOwnersDao extends BaseDao<TaskOwnersDo, TaskOwnersDto> {
 	}
 
 	public String deleteNonExistingTasks( List<String> instanceList,String processor) {
-		//	System.err.println("[PMC][ConsumeODataFacade][Xpath][Xpath][deleteNonExistingTasks] method invoked with [processor]" + processor+"[instanceList]"+instanceList);
+		//            System.err.println("[PMC][ConsumeODataFacade][Xpath][Xpath][deleteNonExistingTasks] method invoked with [processor]" + processor+"[instanceList]"+instanceList);
 		List<TaskOwnersDo> doList = getInstanceByOwner(processor);
-		//	System.err.println("[PMC][ConsumeODataFacade][Xpath][Xpath][deleteNonExistingTasks] method invoked with [doList]" + doList.size()+"[instanceListLength]"+instanceList.size());
+		//            System.err.println("[PMC][ConsumeODataFacade][Xpath][Xpath][deleteNonExistingTasks] method invoked with [doList]" + doList.size()+"[instanceListLength]"+instanceList.size());
 		if(!ServicesUtil.isEmpty(doList)){
 			for(TaskOwnersDo entity :doList){
 				if(!instanceList.contains(entity.getTaskOwnersDoPK().getEventId())){
@@ -202,17 +202,16 @@ public class TaskOwnersDao extends BaseDao<TaskOwnersDo, TaskOwnersDto> {
 	}
 
 	@SuppressWarnings("unchecked")
-	public ExistingDataDto getExistingData(Object[] userList){
+	public Map<String,ExistingDataDto> getExistingData(Object[] userList){
 
 
-		ExistingDataDto responseDto = new ExistingDataDto();
-		Map<String,Integer> totalCountMap = new HashMap<String, Integer>();
-		Map<String,List<String>> existingInstanceMap = new HashMap<String, List<String>>();
+		//	ExistingDataDto responseDto = new ExistingDataDto();
+		Map<String,ExistingDataDto> responseDto = new HashMap<String,ExistingDataDto>();
 
 		String userString = ServicesUtil.getStringFromList(userList);
 		String queryString = "select te.EVENT_ID AS EVENT_ID,te.TASK_OWNER AS TASK_OWNER, ts.STATUS AS STATUS from TASK_OWNERS te  join TASK_EVNT ts on te.EVENT_ID = ts.EVENT_ID left join PRC_EVENTS pe on ts.PROCESS_ID = pe.PROCESS_ID  where  te.TASK_OWNER  IN ("+userString+") and pe.PRC_INST_ID IN ('TS76308026','TS14007970','TS00407862','TS91000610','TS91000879','TS91000728','TS10008126','TS12300097','TS91000199','TS91000695_WS91000198_0000000073','TS21000231','TS91000634','TS01200196','TS91000758','TS01200212','TS14008026','TS91000695','TS91000743')";
 
-		//	String queryString = "select te.taskOwnersDoPK.eventId ,te.taskOwnersDoPK.taskOwner , ts.status from TaskOwnersDo te join TaskEventsDo. ts on te.taskOwnersDoPK.eventId = ts.taskEventsDoPK.eventId where te.taskOwnersDoPK.taskOwner IN ("+userString+")";
+		//            String queryString = "select te.taskOwnersDoPK.eventId ,te.taskOwnersDoPK.taskOwner , ts.status from TaskOwnersDo te join TaskEventsDo. ts on te.taskOwnersDoPK.eventId = ts.taskEventsDoPK.eventId where te.taskOwnersDoPK.taskOwner IN ("+userString+")";
 		Query query = this.getEntityManager()
 				.createNativeQuery(queryString,"existingDataResults");
 		List<Object[]> queryResponse = (List<Object[]>) query.getResultList();
@@ -220,28 +219,35 @@ public class TaskOwnersDao extends BaseDao<TaskOwnersDo, TaskOwnersDto> {
 			for(Object[] obj : queryResponse){
 				String user = (String) obj[1];
 
-				if(existingInstanceMap.containsKey(user)){
-					existingInstanceMap.get(user).add((String) obj[0]);
+				if(responseDto.containsKey(user)){
+					responseDto.get(user).getStringList().add((String) obj[0]);
+					if(((String) obj[2]).equals("READY") || ((String) obj[2]).equals("RESERVED")){
+						responseDto.get(user).setCount(responseDto.get(user).getCount()+1);
+					}
 				}
 				else{
+					ExistingDataDto dto = new ExistingDataDto();
 					List<String> instanceList = new ArrayList<String>();
 					instanceList.add((String) obj[0]);
-					existingInstanceMap.put(user, instanceList);
-				}
-				if(((String) obj[2]).equals("READY") || ((String) obj[2]).equals("RESERVED")){
-					if(totalCountMap.containsKey(user)){
-						totalCountMap.replace(user, totalCountMap.get(user)+1);
+					if(((String) obj[2]).equals("READY") || ((String) obj[2]).equals("RESERVED")){
+						dto.setCount(1);
+					}else{
+						dto.setCount(0);
 					}
-					else{
-						totalCountMap.put(user, 1);
-					}
+					dto.setStringList(instanceList);
+					responseDto.put(user, dto);
 				}
 			}
 		}
-		responseDto.setExistingInstanceMap(existingInstanceMap);
-		responseDto.setTotalCountMap(totalCountMap);
-
 		System.err.println("[PMC][responseDto]"+responseDto+queryResponse.size());
 		return responseDto;
 	} 
 }
+
+
+
+
+
+
+
+

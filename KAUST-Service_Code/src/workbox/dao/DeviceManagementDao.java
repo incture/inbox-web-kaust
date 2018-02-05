@@ -13,6 +13,7 @@ import com.incture.pmc.util.InvalidInputFault;
 import com.incture.pmc.util.NoResultFault;
 import com.incture.pmc.util.ServicesUtil;
 import com.incture.pmc.workbox.dto.DeviceManagementDto;
+import com.incture.pmc.workbox.dto.ExistingDataDto;
 import com.incture.pmc.workbox.entity.DeviceManagementDo;
 
 /**
@@ -148,7 +149,7 @@ public class DeviceManagementDao extends BaseDao<DeviceManagementDo, DeviceManag
 	}
 
 	public String updateCountOfUser(String user,int count) {
-		//	System.err.println("[PMC][DeviceManagementDao][updateCountOfUser]initiated with[user] " + user +"[count]"+count);
+		System.err.println("[PMC][DeviceManagementDao][updateCountOfUser]initiated with[USER] " + user +"[count]"+count);
 		try {
 			String queryString = "update DeviceManagementDo de set de.taskCount = "+ count +" where de.userId = '"+user+"'";
 			Query query = this.getEntityManager().createQuery(queryString);
@@ -174,7 +175,7 @@ public class DeviceManagementDao extends BaseDao<DeviceManagementDo, DeviceManag
 	}
 	 */
 
-	public Map<String,List<String>> getAllDeviceData() {
+	public 	Map<String,ExistingDataDto> getAllDeviceData() {
 		//	System.err.println("[PMC][DeviceManagementDao][getAllDeviceData]initiated ");
 		try {
 			String queryString = "select de from DeviceManagementDo de ";
@@ -199,20 +200,24 @@ public class DeviceManagementDao extends BaseDao<DeviceManagementDo, DeviceManag
 		return null;
 	}
 
-	public Map<String,List<String>> getConvertedData(List<DeviceManagementDo> doList){
+	public 	Map<String,ExistingDataDto> getConvertedData(List<DeviceManagementDo> doList){
 
-		Map<String,List<String>> responseMap = new HashMap<String,List<String>>();
+		Map<String,ExistingDataDto> responseMap = new HashMap<String,ExistingDataDto>();
+		ExistingDataDto dto = null;
 		if(!ServicesUtil.isEmpty(doList)){
 			List<String> deviceList = null;
 			for(DeviceManagementDo entity : doList)
 			{
 				String user = entity.getUserId();
 				if (responseMap.containsKey(user)) {
-					responseMap.get(user).add(entity.getDeviceId());
+					responseMap.get(user).getStringList().add(entity.getDeviceId());
 				} else {
+					dto = new ExistingDataDto(); 
 					deviceList = new ArrayList<String>();
 					deviceList.add(entity.getDeviceId());
-					responseMap.put(user, deviceList);
+					dto.setStringList(deviceList);
+					dto.setCount(entity.getTaskCount());
+					responseMap.put(user, dto);
 				}
 			}
 			System.err.println("[PMC][DeviceManagementDao][getConvertedData][end] with " + responseMap);

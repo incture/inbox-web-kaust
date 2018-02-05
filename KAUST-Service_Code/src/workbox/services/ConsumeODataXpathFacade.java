@@ -51,34 +51,36 @@ public class ConsumeODataXpathFacade implements ConsumeODataXpathFacadeLocal {
 		responseMessage.setStatus("SUCCESS");
 		responseMessage.setStatusCode("0");
 		try{
-		//	final long startTime = System.nanoTime();
+			//	final long startTime = System.nanoTime();
 			NodeList nodeList = ODataServicesUtil.xPathOdata("http://sthcigwdq1.kaust.edu.sa:8005/sap/opu/odata/IWPGW/TASKPROCESSING;mo;v=2/TaskCollection", PMCConstant.APPLICATION_XML, PMCConstant.HTTP_METHOD_GET, "/feed /entry ",processor,scode);
-			if(nodeList.getLength()>0){
-				List<String> instanceList =  new ArrayList<String>();
-				int i;
-				for (i = 0; i < nodeList.getLength(); i++) {
-					Node nNode = nodeList.item(i);
-					if (nNode.getNodeType() == Node.ELEMENT_NODE) {
-						String returnedValue = convertToDto(nNode ,processor ,scode);
-						if (returnedValue.equals("FAILURE")) {
-							responseMessage.setMessage("Data consumption failed");
-							responseMessage.setStatus("FAILURE");
-							responseMessage.setStatusCode("1");
-							break;
-						}
-						else if(!returnedValue.equals("FAILURE") && !returnedValue.equals("SUCCESS")){
-							instanceList.add(returnedValue);	
+			if(!ServicesUtil.isEmpty(nodeList)){
+				if(nodeList.getLength()>0){
+					List<String> instanceList =  new ArrayList<String>();
+					int i;
+					for (i = 0; i < nodeList.getLength(); i++) {
+						Node nNode = nodeList.item(i);
+						if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+							String returnedValue = convertToDto(nNode ,processor ,scode);
+							if (returnedValue.equals("FAILURE")) {
+								responseMessage.setMessage("Data consumption failed");
+								responseMessage.setStatus("FAILURE");
+								responseMessage.setStatusCode("1");
+								break;
+							}
+							else if(!returnedValue.equals("FAILURE") && !returnedValue.equals("SUCCESS")){
+								instanceList.add(returnedValue);	
+							}
 						}
 					}
+					if (new TaskOwnersDao(em.getEntityManager()).deleteNonExistingTasks(instanceList,processor).equals("FAILURE")) {
+						responseMessage.setMessage("Data consumption failed as it failed to delete owners");
+						responseMessage.setStatus("FAILURE");
+						responseMessage.setStatusCode("1");
+						return responseMessage;
+					}
+					//	final long duration = System.nanoTime() - startTime;
+					//	System.err.println("[PMC][ConsumeODataFacade][Xpath][getDataFromECC][no of entries]" + i+ "[timeTaken]"+ duration);
 				}
-				if (new TaskOwnersDao(em.getEntityManager()).deleteNonExistingTasks(instanceList,processor).equals("FAILURE")) {
-					responseMessage.setMessage("Data consumption failed as it failed to delete owners");
-					responseMessage.setStatus("FAILURE");
-					responseMessage.setStatusCode("1");
-					return responseMessage;
-				}
-				//	final long duration = System.nanoTime() - startTime;
-				//	System.err.println("[PMC][ConsumeODataFacade][Xpath][getDataFromECC][no of entries]" + i+ "[timeTaken]"+ duration);
 			}
 		}
 		catch (Exception e) {
@@ -87,10 +89,9 @@ public class ConsumeODataXpathFacade implements ConsumeODataXpathFacadeLocal {
 			responseMessage.setStatus("FAILURE");
 			responseMessage.setStatusCode("1");
 		}
-		;
-
-		if (!new DeviceManagementDao(em.getEntityManager()).updateCountOfUser(processor.toUpperCase(), 0).equals("SUCCESS")) {
-				System.err.println("[PMC][ConsumeODataFacade][Xpath][getDataFromECC][error] failed to update count to 0");
+		String response = new DeviceManagementDao(em.getEntityManager()).updateCountOfUser(processor.toUpperCase(), 0);
+		if (!response.equals("SUCCESS")) {
+			System.err.println("[PMC][ConsumeODataFacade][Xpath][getDataFromECC][error] failed to update count to 0");
 		}
 
 		return responseMessage;
@@ -101,6 +102,10 @@ public class ConsumeODataXpathFacade implements ConsumeODataXpathFacadeLocal {
 		Element mproperties = (Element) eElement.getElementsByTagName("m:properties").item(0);
 		String sapOrigin = mproperties.getElementsByTagName("d:SAP__Origin").item(0).getTextContent();
 		if ((sapOrigin.equals("SRM_WF") || sapOrigin.equals("ECC_WF") || sapOrigin.equals("GRC_WF"))) {
+			if(!getProcessIds().contains(mproperties.getElementsByTagName("d:TaskDefinitionID").item(0).getTextContent())){
+				return "SUCCESS";
+			}
+
 			TaskEventsDto taskDto = new TaskEventsDto();
 			TaskOwnersDto ownersDto = new TaskOwnersDto();
 			TaskCustomAttributeDto attributeDto = new TaskCustomAttributeDto();
@@ -117,8 +122,8 @@ public class ConsumeODataXpathFacade implements ConsumeODataXpathFacadeLocal {
 			processDto.setStartedByDisplayName( mproperties.getElementsByTagName("d:CreatedByName").item(0).getTextContent());
 			processDto.setStartedByDisplayName(mproperties.getElementsByTagName("d:CreatedBy").item(0).getTextContent());
 			taskDto.setDescription(mproperties.getElementsByTagName("d:Description").item(0).getTextContent());
-			ownersDto.setTaskOwnerDisplayName(mproperties.getElementsByTagName("d:ForwardingUserName").item(0).getTextContent());
-			ownersDto.setTaskOwner(mproperties.getElementsByTagName("d:ForwardingUser").item(0).getTextContent());
+			//			ownersDto.setTaskOwnerDisplayName(mproperties.getElementsByTagName("d:ForwardingUserName").item(0).getTextContent());
+			//			ownersDto.setTaskOwner(mproperties.getElementsByTagName("d:ForwardingUser").item(0).getTextContent());
 			taskDto.setCurrentProcessorDisplayName(mproperties.getElementsByTagName("d:ProcessorName").item(0).getTextContent());
 			taskDto.setPriority(mproperties.getElementsByTagName("d:Priority").item(0).getTextContent());
 			processDto.setStartedBy(mproperties.getElementsByTagName("d:CreatedBy").item(0).getTextContent());
@@ -239,33 +244,33 @@ public class ConsumeODataXpathFacade implements ConsumeODataXpathFacadeLocal {
 			TaskCustomAttributeDto attributeDto) {
 		/*System.err.println("[PMC][ConsumeODataFacade][Xpath][createInstance][createProcessInstance] " + processDto
 				+ "[createTaskInstance]" + taskDto 
-				+ "[createTaskAttributeInstance]" + attributeDto+"[status]"+taskDto.getStatus());*/
-		if (new ProcessEventsDao(em.getEntityManager()).createProcessInstance(processDto).equals("FAILURE")) {
-			return "FAILURE";
-		}
-		if (new TaskEventsDao(em.getEntityManager()).createTaskInstance(taskDto).equals("FAILURE")) {
-			return "FAILURE";
-		}
+				+ "[createTaskAttributeInstance]" + attributeDto+"[status]"+taskDto.getStatus());
+		 */if (new ProcessEventsDao(em.getEntityManager()).createProcessInstance(processDto).equals("FAILURE")) {
+			 return "FAILURE";
+		 }
+		 if (new TaskEventsDao(em.getEntityManager()).createTaskInstance(taskDto).equals("FAILURE")) {
+			 return "FAILURE";
+		 }
 
-		if(!(taskDto.getStatus().equals("COMPLETED"))){
-			String actions = getDecisionOptions(attributeDto.getSapOrigin(),taskDto.getEventId());
-			if(!actions.equals("FAILURE")){
-				attributeDto.setActions(actions);
-			}
-			else{
-				return "FAILURE";
-			}
-		}
-		if (new TaskCustomAttributeDao(em.getEntityManager()).createAttrInstance(attributeDto).equals("FAILURE")) {
-			return "FAILURE";
-		}
-		return "SUCCESS";
+		 if(!(taskDto.getStatus().equals("COMPLETED"))){
+			 String actions = getDecisionOptions(attributeDto.getSapOrigin(),taskDto.getEventId());
+			 if(!actions.equals("FAILURE")){
+				 attributeDto.setActions(actions);
+			 }
+			 else{
+				 return "FAILURE";
+			 }
+		 }
+		 if (new TaskCustomAttributeDao(em.getEntityManager()).createAttrInstance(attributeDto).equals("FAILURE")) {
+			 return "FAILURE";
+		 }
+		 return "SUCCESS";
 	}
 
 	private String getDecisionOptions(String sapOrigin,String instanceId){
-		//	System.err.println("[PMC][ConsumeODataFacade][getDecisionOptions] method invoked with [instanceId]" + instanceId+"[sapOrigin]"+sapOrigin+" [url]"+serviceUrl));
-
 		String serviceUrl = "http://sthcigwdq1.kaust.edu.sa:8005/sap/opu/odata/IWPGW/TASKPROCESSING;mo;v=2/DecisionOptions?SAP__Origin='"+sapOrigin+"'&InstanceID='"+instanceId+"'";
+		System.err.println("[PMC][ConsumeODataFacade][Xpath][getDecisionOptions] method invoked with [instanceId]" + instanceId+"[sapOrigin]"+sapOrigin+" [url]"+serviceUrl);
+		
 		try {
 			String  actions = ODataServicesUtil.readActions(serviceUrl, PMCConstant.APPLICATION_XML);
 			return actions;
@@ -275,17 +280,19 @@ public class ConsumeODataXpathFacade implements ConsumeODataXpathFacadeLocal {
 		}
 		return "FAILURE";
 	}
-	
-	 /*   
-	  *   This method  updates the instances of the ProcessEventsDto,  TaskEventsDto, TaskCustomAttributeDto
-	  *   because they already exists in the db with the particular event id
-	  */
+
+	/*   
+	 *   This method  updates the instances of the ProcessEventsDto,  TaskEventsDto, TaskCustomAttributeDto
+	 *   because they already exists in the db with the particular event id
+	 */
 
 	private String updateInstance(ProcessEventsDto processDto, TaskEventsDto taskDto,
 			TaskCustomAttributeDto attributeDto) {
-		/*	System.err.println("[PMC][ConsumeODataFacade][Xpath][updateInstance][ProcessInstance] " + processDto
+		/*if(!processDto.getStatus().equals("COMPLETED")){
+			System.err.println("[PMC][ConsumeODataFacade][Xpath][updateInstance][ProcessInstance] " + processDto
 				+ "[TaskInstance]" + taskDto 
-				+ "[TaskAttributeInstance]" + attributeDto);*/
+				+ "[TaskAttributeInstance]" + attributeDto);
+		}*/
 		if (new ProcessEventsDao(em.getEntityManager()).updateProcessInstance(processDto).equals("FAILURE")) {
 			return "FAILURE";
 		}
@@ -306,15 +313,17 @@ public class ConsumeODataXpathFacade implements ConsumeODataXpathFacadeLocal {
 		return "SUCCESS";
 	}
 
-	 /*   
-	  *   This method  removes any records for which the event id is same but not the task owner  
-	  *   updates record for which the event id and the task owner  are same
-	  *   else it creates if the record doesnt exists 
-	  *   in the Task Owners table 
-	  */
-	
-	
+	/*   
+	 *   This method  removes any records for which the event id is same but not the task owner  
+	 *   updates record for which the event id and the task owner  are same
+	 *   else it creates if the record doesnt exists 
+	 *   in the Task Owners table 
+	 */
+
+
 	private String saveAndUpdateTaskOwners(TaskOwnersDto dto ,String status){
+		//System.err.println("[PMC][ConsumeODataFacade][Xpath][saveAndUpdateTaskOwners][TaskOwnersDto]"+dto+"[status]"+status);
+
 		TaskOwnersDao dao = new TaskOwnersDao(em.getEntityManager());
 		List<TaskOwnersDo> entities = dao.getOwnerInstances(dto.getEventId());
 		boolean isExists = false;
@@ -338,10 +347,10 @@ public class ConsumeODataXpathFacade implements ConsumeODataXpathFacadeLocal {
 		}
 		return "SUCCESS";
 	}
-	
-	 /*   
-	  *   This method  gets all the users to which a task can be forwarded to ( using xpath services )
-	  */
+
+	/*   
+	 *   This method  gets all the users to which a task can be forwarded to ( using xpath services )
+	 */
 
 	@Override
 	public List<UserDetailDto> getUsers(WorkboxRequestDto requestDto) {
@@ -366,11 +375,11 @@ public class ConsumeODataXpathFacade implements ConsumeODataXpathFacadeLocal {
 		}
 		return instanceList;
 	}
-	
 
-	 /*   
-	  *   This method  converts the nodes recieved from service which has the details of the user to UserDetailDto  
-	  */
+
+	/*   
+	 *   This method  converts the nodes recieved from service which has the details of the user to UserDetailDto  
+	 */
 
 	private UserDetailDto convertToUserDto(Node nNode) {
 		Element eElement = (Element) nNode;
@@ -384,6 +393,28 @@ public class ConsumeODataXpathFacade implements ConsumeODataXpathFacadeLocal {
 		return userDto;
 	}
 
+	private List<String> getProcessIds(){
+		List<String> returnArray  = new ArrayList<String>();
+		returnArray.add("TS76308026");
+		returnArray.add("TS14007970");
+		returnArray.add("TS00407862");
+		returnArray.add("TS91000610");
+		returnArray.add("TS91000879");
+		returnArray.add("TS91000728");
+		returnArray.add("TS10008126");
+		returnArray.add("TS12300097");
+		returnArray.add("TS91000199");
+		returnArray.add("TS91000695_WS91000198_0000000073");
+		returnArray.add("TS21000231");
+		returnArray.add("TS91000634");
+		returnArray.add("TS01200196");
+		returnArray.add("TS91000758");
+		returnArray.add("TS01200212");
+		returnArray.add("TS14008026");
+		returnArray.add("TS91000695");
+		returnArray.add("TS91000743");
 
+		return returnArray;
+	}
 
 }

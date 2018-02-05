@@ -6,6 +6,7 @@ import java.util.List;
 public class WorKBoxDetailDto {
 
 	private String description;
+	private String descriptionAsHtml;
 	private String masterDataCollection;
 	private String headerCollection;
 	private String headerInformationDetail;
@@ -128,15 +129,22 @@ public class WorKBoxDetailDto {
 
 	@Override
 	public String toString() {
-		return "WorKBoxDetailDto [description=" + description + ", masterDataCollection=" + masterDataCollection
-				+ ", headerCollection=" + headerCollection + ", headerInformationDetail=" + headerInformationDetail
-				+ ", moreDetailInformation=" + moreDetailInformation + ", itemAttachmentCollection="
-				+ itemAttachmentCollection + ", itemCollectionHeader=" + itemCollectionHeader
-				+ ", additionalTabHeaderNote=" + additionalTabHeaderNote + ", informationTabContentTop="
-				+ informationTabContentTop + ", itemCollectionData=" + itemCollectionData + ", actionURL=" + actionURL
-				+ ", actionList=" + actionList + ", commentCount=" + commentCount + ", attachmentCount="
-				+ attachmentCount + ", message=" + message + ", commentCollection=" + commentCollection
-				+ ", attachmentCollection=" + attachmentCollection + "]";
+		return "WorKBoxDetailDto [description=" + description + ", descriptionAsHtml=" + descriptionAsHtml
+				+ ", masterDataCollection=" + masterDataCollection + ", headerCollection=" + headerCollection
+				+ ", headerInformationDetail=" + headerInformationDetail + ", moreDetailInformation="
+				+ moreDetailInformation + ", itemAttachmentCollection=" + itemAttachmentCollection
+				+ ", itemCollectionHeader=" + itemCollectionHeader + ", additionalTabHeaderNote="
+				+ additionalTabHeaderNote + ", informationTabContentTop=" + informationTabContentTop
+				+ ", itemCollectionData=" + itemCollectionData + ", actionURL=" + actionURL + ", actionList="
+				+ actionList + ", commentCount=" + commentCount + ", attachmentCount=" + attachmentCount + ", message="
+				+ message + ", commentCollection=" + commentCollection + ", attachmentCollection="
+				+ attachmentCollection + "]";
+	}
+	public String getDescriptionAsHtml() {
+		return descriptionAsHtml;
+	}
+	public void setDescriptionAsHtml(String descriptionAsHtml) {
+		this.descriptionAsHtml = descriptionAsHtml;
 	}
 
 }

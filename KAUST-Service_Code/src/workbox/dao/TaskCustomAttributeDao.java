@@ -81,7 +81,7 @@ public class TaskCustomAttributeDao extends BaseDao<TaskCustomAttributeDo, TaskC
 	}
 
 	public String createAttrInstance(TaskCustomAttributeDto dto) {
-	//	System.err.println("[PMC][TaskCustomAttributeDao][createAttrInstance]initiated with " + dto);
+		//	System.err.println("[PMC][TaskCustomAttributeDao][createAttrInstance]initiated with " + dto);
 		try {
 			create(dto);
 			return "SUCCESS";
@@ -92,7 +92,7 @@ public class TaskCustomAttributeDao extends BaseDao<TaskCustomAttributeDo, TaskC
 	}
 
 	public String updateAttrInstance(TaskCustomAttributeDto dto) {
-	//	System.err.println("[PMC][TaskCustomAttributeDao][updateAttrInstance]initiated with " + dto);
+		//	System.err.println("[PMC][TaskCustomAttributeDao][updateAttrInstance]initiated with " + dto);
 		try {
 			update(dto);
 			return "SUCCESS";
@@ -105,14 +105,14 @@ public class TaskCustomAttributeDao extends BaseDao<TaskCustomAttributeDo, TaskC
 
 	@SuppressWarnings("unchecked")
 	public String allAttrInstance() {
-	//	System.err.println("[PMC][TaskCustomAttributeDao][allAttrInstance]initiated");
+		//	System.err.println("[PMC][TaskCustomAttributeDao][allAttrInstance]initiated");
 		Query query = this.getEntityManager().createQuery("select te from TaskCustomAttributeDo te");
 		List<TaskCustomAttributeDo> processDos = (List<TaskCustomAttributeDo>) query.getResultList();
 		int i = 0;
 		try {
 			for (TaskCustomAttributeDo entity : processDos) {
 				System.err.println("[PMC][TaskCustomAttributeDao][allAttrInstance][i]"+i+"[entity]" +entity);
-			//	delete(exportDto(entity));
+				//	delete(exportDto(entity));
 				i++;
 			}
 			return "SUCCESS";
@@ -137,6 +137,21 @@ public class TaskCustomAttributeDao extends BaseDao<TaskCustomAttributeDo, TaskC
 			return null;
 		}
 		return null;
+	}
+
+	public String updateAttributeInstance(String instanceId,String actions) {
+		try{
+			Query query = this.getEntityManager()
+					.createQuery("update TaskCustomAttributeDo te set te.actions = '"+actions+"' where te.instanceId =:instanceId");
+			query.setParameter("instanceId", instanceId);
+
+			if (query.executeUpdate()> 0) {
+				return "SUCCESS";
+			}
+		}catch(Exception e ){
+			System.err.println("[PMC][ConsumeODataFacade][updateAttributeInstance] failed because"+e.getMessage());
+		}
+		return "FAILURE";
 	}
 
 }
