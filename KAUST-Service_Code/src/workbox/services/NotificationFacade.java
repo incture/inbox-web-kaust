@@ -98,8 +98,9 @@ public class NotificationFacade implements NotificationFacadeLocal {
 						{
 							deviceData.get(user).setCount(deviceDataOfUser.getCount()+1);
 							//	existingDataDto.getTotalCountMap().replace(user, existingDataDto.getTotalCountMap().get(user)+1);
-							pushNotificationToIOS(existingDataDto.get(user).getCount() + deviceDataOfUser.getCount() , descDto.getDescription() ,deviceDataOfUser.getStringList());
 						}
+						pushNotificationToIOS(existingDataDto.get(user).getCount() + deviceDataOfUser.getCount() , descDto.getDescription() ,deviceDataOfUser.getStringList());
+						
 					}
 					else{
 						deviceDataOfUser = new ExistingDataDto();
