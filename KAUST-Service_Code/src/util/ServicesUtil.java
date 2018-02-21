@@ -167,12 +167,13 @@ public class ServicesUtil {
 
 	public static long getEarlierDateInMillis(int noOfDays , int hours ,int minutes ,int seconds ,int millis) {
 		Calendar calendar = Calendar.getInstance();
-		System.out.println(calendar.getTime());
-		calendar.add(Calendar.DAY_OF_MONTH, -noOfDays);
-		calendar.set(Calendar.HOUR_OF_DAY, -hours);
+		System.err.println("calender start"+calendar.getTimeInMillis());		
+//		calendar.add(Calendar.DAY_OF_MONTH, -noOfDays);
+//		calendar.set(Calendar.HOUR_OF_DAY, -hours);
 		calendar.set(Calendar.MINUTE, -minutes);
-		calendar.set(Calendar.SECOND, -seconds);
-		calendar.set(Calendar.MILLISECOND, -millis);
+//		calendar.set(Calendar.SECOND, -seconds);
+//		calendar.set(Calendar.MILLISECOND, -millis);
+		System.err.println("calender end"+calendar.getTimeInMillis());
 		return calendar.getTimeInMillis();
 	} 
 	
